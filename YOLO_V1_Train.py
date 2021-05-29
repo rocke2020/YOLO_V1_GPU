@@ -21,7 +21,7 @@ optimizer = optim.SGD(Yolo.parameters(),lr=3e-3,momentum=0.9,weight_decay=0.0005
 scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer,milestones=[100,200,300,400,500,600,700,800,900,1000,2000,3000,4000,5000,6000,7000,8000,9000,10000,20000,30000,40000],gamma=0.9)
 
 #--------------step5:Tensorboard Feature Map------------
-from tensorboardX import SummaryWriter
+from torch.utils.tensorboard import SummaryWriter
 import torchvision.utils as vutils
 import torch.nn as nn
 writer = SummaryWriter('log')
@@ -52,10 +52,9 @@ while epoch <= 2000*dataSet.Classes:
     with tqdm(total=dataLoader.__len__()) as tbar:
         for batch_index, batch_train in enumerate(dataLoader):
             optimizer.zero_grad()
-            train_data = batch_train[0].float().cuda(device=0)
-            train_data.requires_grad = True
+            img_data = batch_train[0].float().cuda(device=0)
             label_data = batch_train[1].float().cuda(device=0)
-            loss = loss_function(bounding_boxes=Yolo(train_data),ground_truth=label_data)
+            loss = loss_function(bounding_boxes=Yolo(img_data),ground_truth=label_data)
             batch_loss = loss[0]
             loss_coord = loss_coord + loss[1]
             loss_confidence = loss_confidence + loss[2]
@@ -75,7 +74,7 @@ while epoch <= 2000*dataSet.Classes:
             #print("batch_index : {} ; batch_loss : {}".format(batch_index, batch_loss))
             
     epoch = epoch + 1
-    if epoch % 100 == 0:
+    if epoch % 1000 == 0:
         torch.save(Yolo.state_dict(), './YOLO_V1_' + str(epoch) + '.pth')
         writer.close()
         writer = SummaryWriter(logdir='log',filename_suffix=str(epoch) + '~' + str(epoch + 100))

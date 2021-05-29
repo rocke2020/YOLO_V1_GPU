@@ -44,7 +44,7 @@ def NMS(bounding_boxes,S=7,B=2,img_size=448,confidence_threshold=0.5,iou_thresho
                 else:
                     bounding_box = bounding_boxes[batch][i][j][0:5]
                 bounding_box.extend(bounding_boxes[batch][i][j][10:])
-                if bounding_box[4] >= confidence_threshold:
+                if bounding_box[4] < confidence_threshold:
                     continue
                 centerX = (int)(gridX + bounding_box[0] * grid_size)
                 centerY = (int)(gridY + bounding_box[1] * grid_size)

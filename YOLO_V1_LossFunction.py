@@ -13,7 +13,7 @@ class Yolov1_Loss(nn.Module):
         self.Classes = Classes
         self.l_coord = l_coord
         self.l_noobj = l_noobj
-	self.epoch = epoch
+        self.epoch = epoch
 
     def iou(self, bounding_box, ground_box, gridX, gridY, img_size=448, grid_size=64):  # 计算两个box的IoU值
         # predict_box: [centerX, centerY, width, height]
