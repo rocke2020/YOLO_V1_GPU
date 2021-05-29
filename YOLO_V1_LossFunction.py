@@ -27,7 +27,11 @@ class Yolov1_Loss(nn.Module):
         predict_box[3] = (int)(bounding_box[3] * img_size)
 
         # [xmin,ymin,xmax,ymax]
-        predict_coord = list([max(0, predict_box[0] - predict_box[2] / 2), max(0, predict_box[1] - predict_box[3] / 2),min(img_size - 1, predict_box[0] + predict_box[2] / 2), min(img_size - 1, predict_box[1] + predict_box[3] / 2)])
+        predict_coord = [
+            max(0, predict_box[0] - predict_box[2] / 2), 
+            max(0, predict_box[1] - predict_box[3] / 2),
+            min(img_size - 1, predict_box[0] + predict_box[2] / 2), 
+            min(img_size - 1, predict_box[1] + predict_box[3] / 2)]
         predict_Area = (predict_coord[2] - predict_coord[0]) * (predict_coord[3] - predict_coord[1])
 
         ground_coord = list([ground_box[5],ground_box[6],ground_box[7],ground_box[8]])
@@ -88,18 +92,26 @@ class Yolov1_Loss(nn.Module):
                         iou = self.iou(predict_box, ground_truth[batch][i][j][0], j * 64, i * 64)
                         iou_sum = iou_sum + iou
                         ground_box = ground_truth[batch][i][j][0]
-                        loss = loss + self.l_coord * (torch.pow((ground_box[0] - predict_box[0]), 2) + torch.pow((ground_box[1] - predict_box[1]), 2) + torch.pow(torch.sqrt(ground_box[2] + 1e-8) - torch.sqrt(predict_box[2] + 1e-8), 2) + torch.pow(torch.sqrt(ground_box[3] + 1e-8) - torch.sqrt(predict_box[3] + 1e-8), 2))
-                        loss_coord += self.l_coord * (math.pow((ground_box[0] - predict_box[0]), 2) + math.pow((ground_box[1] - predict_box[1]), 2) + math.pow(math.sqrt(ground_box[2] + 1e-8) - math.sqrt(predict_box[2] + 1e-8), 2) + math.pow(math.sqrt(ground_box[3] + 1e-8) - math.sqrt(predict_box[3] + 1e-8), 2))
+                        loss_location = self.l_coord * (
+                            torch.pow((ground_box[0] - predict_box[0]), 2) 
+                            + torch.pow((ground_box[1] - predict_box[1]), 2) 
+                            + torch.pow(torch.sqrt(ground_box[2] + 1e-8) - torch.sqrt(predict_box[2] + 1e-8), 2) 
+                            + torch.pow(torch.sqrt(ground_box[3] + 1e-8) - torch.sqrt(predict_box[3] + 1e-8), 2)
+                        )
+                        loss = loss + loss_location
+                        loss_coord += loss_location
                         loss = loss + torch.pow(ground_box[4] - predict_box[4], 2)
                         loss_confidence += math.pow(ground_box[4] - predict_box[4], 2)
                         ground_class = ground_box[10:]
                         predict_class = bounding_boxes[batch][i][j][self.B * 5:]
                         loss = loss + mseLoss(ground_class,predict_class) * self.Classes
                         loss_classes += mseLoss(ground_class,predict_class).item() * self.Classes
-        print("坐标误差:{} 置信度误差:{} 类别损失:{} iou_sum:{} object_num:{} iou:{}".format(loss_coord, loss_confidence, loss_classes, iou_sum, object_num, "nan" if object_num == 0 else (iou_sum / object_num)))
+        print("坐标误差:{} 置信度误差:{} 类别损失:{} iou_sum:{} object_num:{} iou:{}".format(
+            loss_coord, loss_confidence, loss_classes, iou_sum, object_num, 
+            "nan" if object_num == 0 else (iou_sum / object_num)))
         return loss, loss_coord, loss_confidence, loss_classes, iou_sum, object_num
     
-        def setLossWeight(self, epoch):
-            if epoch > self.epoch:
-                self.l_coord = 1
-                self.l_noobj = 1
+    # def setLossWeight(self, epoch):
+    #     if epoch > self.epoch:
+    #         self.l_coord = 1
+    #         self.l_noobj = 1

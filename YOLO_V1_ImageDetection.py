@@ -1,5 +1,5 @@
 #------step1: 导入网络------
-from YOLO_V1_Model import YOLO_V1
+from YOLO_v1_Model import YOLO_V1
 YoloV1 = YOLO_V1().cuda()
 
 #------step:2 读取权重文件------
@@ -56,23 +56,23 @@ def NMS(bounding_boxes,S=7,B=2,img_size=448,confidence_threshold=0.5,iou_thresho
                 bounding_box[3] = min(img_size - 1, (int)(centerY + height / 2))
                 predict_boxes.append(bounding_box)
 
-        while len(predict_boxes) != 0:
-            predict_boxes.sort(key=lambda box:box[4])
-            assured_box = predict_boxes[0]
-            temp = []
-            classIndex = np.argmax(assured_box[5:])
-            #print("类别索引:{}".format(classIndex))
-            assured_box[4] = assured_box[4] * assured_box[5 + classIndex] #修正置信度为 物体分类准确度 × 含有物体的置信度
-            assured_box[5] = classIndex
-            nms_boxes.append(assured_box)
-            i = 1
-            while i < len(predict_boxes):
-                if iou(assured_box,predict_boxes[i]) <= iou_threshold:
-                    temp.append(predict_boxes[i])
-                i = i + 1
-            predict_boxes = temp
+    while len(predict_boxes) != 0:
+        predict_boxes.sort(key=lambda box:box[4])
+        assured_box = predict_boxes[0]
+        temp = []
+        classIndex = np.argmax(assured_box[5:])
+        #print("类别索引:{}".format(classIndex))
+        assured_box[4] = assured_box[4] * assured_box[5 + classIndex] #修正置信度为 物体分类准确度 × 含有物体的置信度
+        assured_box[5] = classIndex
+        nms_boxes.append(assured_box)
+        i = 1
+        while i < len(predict_boxes):
+            if iou(assured_box,predict_boxes[i]) <= iou_threshold:
+                temp.append(predict_boxes[i])
+            i = i + 1
+        predict_boxes = temp
 
-        return nms_boxes
+    return nms_boxes
 
 
 #------step:5 待测试的文件
@@ -98,5 +98,3 @@ for box in NMS_boxes:
 cv2.imshow("img_detection",img_data)
 cv2.waitKey()
 cv2.destroyAllWindows()
-
-
