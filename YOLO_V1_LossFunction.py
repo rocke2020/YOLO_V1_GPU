@@ -111,7 +111,7 @@ class Yolov1_Loss(nn.Module):
             "nan" if object_num == 0 else (iou_sum / object_num)))
         return loss, loss_coord, loss_confidence, loss_classes, iou_sum, object_num
     
-    # def setLossWeight(self, epoch):
-    #     if epoch > self.epoch:
-    #         self.l_coord = 1
-    #         self.l_noobj = 1
+    def setLossWeight(self, epoch):
+        if epoch > self.epoch:
+            self.l_coord = 1
+            self.l_noobj = 1

@@ -1,5 +1,6 @@
 #---------------step1:Dataset-------------------
 import torch
+from tqdm import tqdm
 from YOLO_V1_DataSet import YoloV1DataSet
 dataSet = YoloV1DataSet(imgs_dir="./VOC2007/Train/JPEGImages",annotations_dir="./VOC2007/Train/Annotations",ClassesFile="./VOC2007/Train/class.data")
 from torch.utils.data import DataLoader
@@ -7,12 +8,12 @@ dataLoader = DataLoader(dataSet,batch_size=32,shuffle=True,num_workers=4)
 
 #---------------step2:Model-------------------
 from YOLO_V1_Model import YOLO_V1
-Yolo = YOLO_V1().cuda(device=1)
+Yolo = YOLO_V1().cuda(device=0)
 Yolo.initialize_weights()
 
 #---------------step3:LossFunction-------------------
 from YOLO_V1_LossFunction import  Yolov1_Loss
-loss_function = Yolov1_Loss().cuda(device=1)
+loss_function = Yolov1_Loss().cuda(device=0)
 
 #---------------step4:Optimizer-------------------
 import torch.optim as optim
@@ -47,11 +48,8 @@ while epoch <= 2000*dataSet.Classes:
     loss_classes = 0
     epoch_iou = 0
     epoch_object_num = 0
-    scheduler.step()
-    loss_function.setLossWeight(epoch)
     
     with tqdm(total=dataLoader.__len__()) as tbar:
-
         for batch_index, batch_train in enumerate(dataLoader):
             optimizer.zero_grad()
             train_data = batch_train[0].float().cuda(device=0)
@@ -66,6 +64,7 @@ while epoch <= 2000*dataSet.Classes:
             epoch_object_num = epoch_object_num + loss[5]
             batch_loss.backward()
             optimizer.step()
+            scheduler.step()
             batch_loss = batch_loss.item()
             loss_sum = loss_sum + batch_loss
             
