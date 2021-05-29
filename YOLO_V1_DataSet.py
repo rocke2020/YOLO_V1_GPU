@@ -7,7 +7,9 @@ import torchvision.transforms as transforms
 
 class YoloV1DataSet(Dataset):
 
-    def __init__(self, imgs_dir="./VOC2007/Train/JPEGImages", annotations_dir="./VOC2007/Train/Annotations", img_size=448, S=7, B=2, ClassesFile="./VOC2007/Train/class.data"): # 图片路径、注解文件路径、图片尺寸、每个grid cell预测的box数量、类别文件
+    def __init__(self, img_size=448, S=7, B=2, 
+        imgs_dir="./VOC2007/Train/JPEGImages", annotations_dir="./VOC2007/Train/Annotations", 
+        ClassesFile="./VOC2007/Train/class.data"): # 图片路径、注解文件路径、图片尺寸、每个grid cell预测的box数量、类别文件
         img_names = os.listdir(imgs_dir)
         img_names.sort()
         self.transfrom = transforms.Compose([
@@ -77,12 +79,19 @@ class YoloV1DataSet(Dataset):
                 ClassIndex = self.ClassNameToInt[class_name]
                 ClassList = [0 for i in range(self.Classes)]
                 ClassList[ClassIndex] = 1
-                ground_box = list([centerX / self.grid_cell_size - indexJ,centerY / self.grid_cell_size - indexI,(xmax-xmin)/self.img_size,(ymax-ymin)/self.img_size,1,xmin,ymin,xmax,ymax,(xmax-xmin)*(ymax-ymin)])
+                ground_box = list([
+                    centerX / self.grid_cell_size - indexJ,
+                    centerY / self.grid_cell_size - indexI,
+                    (xmax-xmin)/self.img_size,
+                    (ymax-ymin)/self.img_size,
+                    1,
+                    xmin,ymin,xmax,ymax,
+                    (xmax-xmin)*(ymax-ymin)])
                 #增加上类别
                 ground_box.extend(ClassList)
                 ground_truth[indexI][indexJ].append(ground_box)
 
-            #同一个grid cell内的多个groudn_truth，选取面积最大的两个
+            #同一个grid cell内的多个groudn_truth，选取面积最大的一个
             for i in range(self.S):
                 for j in range(self.S):
                     if len(ground_truth[i][j]) == 0:
